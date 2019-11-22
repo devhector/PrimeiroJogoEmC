@@ -1,3 +1,7 @@
+/*
+Autor: Hector Fernandes
+*/
+
 #include <stdio.h>
 #include <pthread.h>
 #include "bibliotecas/rlutil.h"
