@@ -11,8 +11,8 @@ Autores: Eduardo Nicoletti
 #include "bibliotecas/rlutil.h"
 #define PX 120
 #define PY 30
-char parede = '*', outra = 'x', person = '@', ini = '&';
-int mapa[PY][PX], G, fps = 0;
+char parede = '*', outra = 'x', person = '0', ini = '&', fase[10] = "mapa_novo";
+int mapa[PY][PX], G;
 
 typedef struct{
   int x;
@@ -59,14 +59,40 @@ void movimento(char mv){
     if (mapa[personagem.y][personagem.x - 1] != 1) --personagem.x;
   if (mv == 'd')
     if (mapa[personagem.y][personagem.x + 1] != 1) ++personagem.x;
-  if (mv == '^')
-    if(mapa[personagem.y + 1][personagem.x] != 1) ++personagem.y;
   if (mv == 'l') personagem.y = 2;
   if (mv == 'w')
     if (G == 0)
       G = 4;
+  if (mv == 's')
+    if (personagem.y < 28)
+      personagem.y++;
 
 
+}
+
+void ler_mapa(){
+    char c;
+    int i=0,j=0,num;
+    FILE *arq;
+    if (!(arq = fopen(fase,"r"))) /* Caso ocorra algum erro na abertura do arquivo..*/
+        {                           /* o programa aborta automaticamente */
+                printf("Erro! Impossivel abrir o arquivo!\n");
+                exit(1);
+        }
+
+    for(i = 0; i < PY; i ++){
+        for(j = 0; j < PX; j++){
+            c= fgetc(arq);
+            num = atoi(&c);
+            mapa[i][j]= num;
+        }
+            c = fgetc(arq);
+            if(c != '\n'){
+                num = atoi(&c);
+                mapa[i][j]= num;
+            }
+    }
+    fclose(arq);
 }
 
 void *gravidade(){
@@ -86,10 +112,9 @@ void *gravidade(){
         
       }
     }else {
-      if(1/*mapa[y - 1][x] != 1*/){
+      if(1){
         personagem.y--;
-        usleep(80000);
-        
+        usleep(90000);
         G--;
       }
     }
@@ -97,7 +122,8 @@ void *gravidade(){
 }
 
 void *imprimir(){
-  CriarMapa();
+  ler_mapa();
+  //CriarMapa();
   
   while(1){
     usleep(50000);
@@ -107,6 +133,7 @@ void *imprimir(){
 
 
 int main(){
+  
   personagem.x = 2;
   personagem.y = 2;
   inimigo.x = 14;
@@ -123,6 +150,7 @@ int main(){
 
     mov = getch();
     movimento(mov);
+
   }
   return 0;
 }
