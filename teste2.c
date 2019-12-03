@@ -11,7 +11,7 @@ Autores: Eduardo Nicoletti
 #include "bibliotecas/rlutil.h"
 #define PX 120
 #define PY 30
-char parede = '*', outra = 'x', person = '0', ini = '&', fase[10] = "mapa_novo";
+char parede = '*', outra = 'x', person = '0', ini = 'o', fase[10] = "mapa_novo";
 int mapa[PY][PX], G;
 
 typedef struct{
@@ -19,7 +19,7 @@ typedef struct{
   int y;
 }pos;
 
-pos personagem, inimigo;
+pos personagem, inimigo[2];
 
 
 void CriarMapa(){
@@ -41,7 +41,7 @@ void imprimirMapa(){
       if(mapa[i][j] == 1) printf("%c", parede);
       else if (mapa[i][j] == 2) printf("%c", outra);
       else if ((i == personagem.y)&&(j == personagem.x)) printf("%c", person);
-      else if ((i == inimigo.y)&&(j == inimigo.x)) printf("%c", ini);
+      else if ((i == inimigo[0].y)&&(j == inimigo[0].x)) printf("%c", ini);
       else if (mapa[i][j] == 0) printf(" ");
 
     }
@@ -72,7 +72,7 @@ void movimento(char mv){
 
 void ler_mapa(){
     char c;
-    int i=0,j=0,num;
+    int i ,j ,num;
     FILE *arq;
     if (!(arq = fopen(fase,"r"))) /* Caso ocorra algum erro na abertura do arquivo..*/
         {                           /* o programa aborta automaticamente */
@@ -99,14 +99,14 @@ void *gravidade(){
 
   while(1){
 
-    if((personagem.x == inimigo.x)&&(personagem.y == inimigo.y)){  
+    if((personagem.x == inimigo[0].x)&&(personagem.y == inimigo[0].y)){  
       personagem.x = 2;
       personagem.y = 2;
     }
 
     if(G == 0){
       if(mapa[personagem.y + 1][personagem.x] != 1){
-        if(mapa[inimigo.y + 1][inimigo.x] != 1) ++inimigo.y;
+        if(mapa[inimigo[0].y + 1][inimigo[0].x] != 1) ++inimigo[0].y;
         ++personagem.y;
         usleep(80000);
         
@@ -119,6 +119,33 @@ void *gravidade(){
       }
     }
   }
+}
+
+void *mvinimigo(){
+
+while(1){
+  if (mapa[inimigo[0].y + 1][inimigo[0].x] == 1){
+    if(mapa[inimigo[0].y][inimigo[0].x + 1] != 1){
+      while (1)
+      {
+        inimigo[0].x++;
+        usleep(100000);
+        if(mapa[inimigo[0].y][inimigo[0].x + 1] == 1) break;
+      }
+    }
+    if(mapa[inimigo[0].y][inimigo[0].x - 1] != 1){
+      while (1)
+      {
+        inimigo[0].x--;
+        usleep(100000);
+        if(mapa[inimigo[0].y][inimigo[0].x - 1] == 1) break;
+      }
+    }  
+
+    
+  }
+}
+
 }
 
 void *imprimir(){
@@ -136,14 +163,15 @@ int main(){
   
   personagem.x = 2;
   personagem.y = 2;
-  inimigo.x = 14;
-  inimigo.y = 2;
-  pthread_t gravity, frame;
+  inimigo[0].x = 14;
+  inimigo[0].y = 2;
+  pthread_t gravity, frame, movime;
   char mov;
  
 
   pthread_create(&gravity, NULL, gravidade, NULL);
   pthread_create(&frame, NULL, imprimir, NULL);
+  pthread_create(&movime, NULL, mvinimigo, NULL);
 
 
   while(mov != 'p'){
