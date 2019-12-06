@@ -12,7 +12,7 @@ Autores: Eduardo Nicoletti
 #include "bibliotecas/rlutil.h"
 #define PX 120
 #define PY 30
-char parede = '*', outra = 'x', person = 'O', ini = 'o', fase[30] = "maps/mapa_novo";
+char parede = '*', outra = 'x', person = 'O', ini = 'o', fase[30] = "mapa_novo";
 int mapa[PY][PX], G, min, seg;
 
 typedef struct{
@@ -103,7 +103,7 @@ void *gravidadeper(){
 
   while(1){
 
-    if((personagem.x == inimigo[0].x)&&(personagem.y == inimigo[0].y)){  
+    if((personagem.x == inimigo[0].x)&&(personagem.y == inimigo[0].y)){
       personagem.x = 2;
       personagem.y = 2;
     }
@@ -136,14 +136,14 @@ void *gravidadeini(){
 
       if(mapa[inimigo[1].y + 1][inimigo[1].x] != 1){
          ++inimigo[1].y;
-        
+
       }
 
       usleep(70000);
 
     }
   }
-  
+
 }
 
 void *mvinimigo(){
@@ -165,18 +165,17 @@ while(1){
         usleep(100000);
         if(mapa[inimigo[0].y][inimigo[0].x - 1] == 1) break;
       }
-    }  
+    }
 
-    
+
   }
 }
 
 }
 
 void *imprimir(){
-  ler_mapa();
   //CriarMapa();
-  
+
   while(1){
     usleep(50000);
     imprimirMapa();
@@ -191,7 +190,7 @@ seg = 0;
 while (1)
 {
   for (int i = 0; i < 60; i ++){
-    
+
     seg = i;
 
     if(seg == 59){
@@ -204,8 +203,8 @@ while (1)
 
 }
 
-int main(){
-  
+void iniciar(){
+  ler_mapa();
   personagem.x = 2;
   personagem.y = 2;
   inimigo[0].x = 62;
@@ -213,8 +212,7 @@ int main(){
   inimigo[1].x = 31;
   inimigo[1].y = 2;
   pthread_t gravity[2], frame, movime, cro;
-  char mov;
- 
+
 
   pthread_create(&gravity[0], NULL, gravidadeper, NULL);
   pthread_create(&gravity[1], NULL, gravidadeini, NULL);
@@ -222,6 +220,31 @@ int main(){
   pthread_create(&movime, NULL, mvinimigo, NULL);
   pthread_create(&cro, NULL, cronometro, NULL);
 
+}
+
+void menu(){
+  char c;
+  gotoxy(28,8);
+  printf("Bem-vindo a Rush Knight!");
+  gotoxy(28,10);
+  printf("Iniciar");
+  gotoxy(28,12);
+  printf("Ranking");
+  gotoxy(28,14);
+  printf("Sair");
+  getch();
+  gotoxy(29,8);
+  printf("11");
+  getch();
+}
+
+int main(){
+
+
+
+  menu();
+  iniciar();
+  char mov;
 
   while(mov != 'p'){
 
