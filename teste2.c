@@ -8,11 +8,12 @@ Autores: Eduardo Nicoletti
 #include <stdio.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "bibliotecas/rlutil.h"
 #define PX 120
 #define PY 30
-char parede = '*', outra = 'x', person = '0', ini = 'o', fase[10] = "mapa_novo";
-int mapa[PY][PX], G;
+char parede = '*', outra = 'x', person = 'O', ini = 'o', fase[30] = "maps/mapa_novo";
+int mapa[PY][PX], G, min, seg;
 
 typedef struct{
   int x;
@@ -42,6 +43,7 @@ void imprimirMapa(){
       else if (mapa[i][j] == 2) printf("%c", outra);
       else if ((i == personagem.y)&&(j == personagem.x)) printf("%c", person);
       else if ((i == inimigo[0].y)&&(j == inimigo[0].x)) printf("%c", ini);
+      else if ((i == inimigo[1].y)&&(j == inimigo[1].x)) printf("%c", ini);
       else if (mapa[i][j] == 0) printf(" ");
 
     }
@@ -50,7 +52,9 @@ void imprimirMapa(){
   printf("\n %d", mapa[personagem.y + 1][personagem.x]);
   printf(" %d ", mapa[personagem.y][personagem.x - 1]);
   printf(" x: %d ", personagem.x);
-  printf("y: %d \n", personagem.y);
+  printf("y: %d ", personagem.y);
+  printf("%d:%d", min, seg);
+  printf("\n");
 }
 
 void movimento(char mv){
@@ -95,7 +99,7 @@ void ler_mapa(){
     fclose(arq);
 }
 
-void *gravidade(){
+void *gravidadeper(){
 
   while(1){
 
@@ -106,10 +110,8 @@ void *gravidade(){
 
     if(G == 0){
       if(mapa[personagem.y + 1][personagem.x] != 1){
-        if(mapa[inimigo[0].y + 1][inimigo[0].x] != 1) ++inimigo[0].y;
         ++personagem.y;
-        usleep(80000);
-        
+        usleep(85000);
       }
     }else {
       if(1){
@@ -119,6 +121,29 @@ void *gravidade(){
       }
     }
   }
+}
+
+void *gravidadeini(){
+
+  while (1)
+  {
+    if(G == 0){
+
+      if(mapa[inimigo[0].y + 1][inimigo[0].x] != 1){
+         ++inimigo[0].y;
+        //usleep(70000);
+      }
+
+      if(mapa[inimigo[1].y + 1][inimigo[1].x] != 1){
+         ++inimigo[1].y;
+        
+      }
+
+      usleep(70000);
+
+    }
+  }
+  
 }
 
 void *mvinimigo(){
@@ -158,20 +183,44 @@ void *imprimir(){
   }
 }
 
+void *cronometro(){
+
+min = 0;
+seg = 0;
+
+while (1)
+{
+  for (int i = 0; i < 60; i ++){
+    
+    seg = i;
+
+    if(seg == 59){
+      min++;
+      seg = 0;
+    }
+  sleep(1);
+  }
+}
+
+}
 
 int main(){
   
   personagem.x = 2;
   personagem.y = 2;
-  inimigo[0].x = 14;
+  inimigo[0].x = 62;
   inimigo[0].y = 2;
-  pthread_t gravity, frame, movime;
+  inimigo[1].x = 31;
+  inimigo[1].y = 2;
+  pthread_t gravity[2], frame, movime, cro;
   char mov;
  
 
-  pthread_create(&gravity, NULL, gravidade, NULL);
+  pthread_create(&gravity[0], NULL, gravidadeper, NULL);
+  pthread_create(&gravity[1], NULL, gravidadeini, NULL);
   pthread_create(&frame, NULL, imprimir, NULL);
   pthread_create(&movime, NULL, mvinimigo, NULL);
+  pthread_create(&cro, NULL, cronometro, NULL);
 
 
   while(mov != 'p'){
