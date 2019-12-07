@@ -220,10 +220,21 @@ void iniciar(){
   pthread_create(&threads[3], NULL, mvinimigo, NULL);
   pthread_create(&threads[4], NULL, cronometro, NULL);
 
-}
+  char mov;
 
-void menu(){
+  while(mov != 'p'){
+
+    mov = getch();
+    movimento(mov);
+
+  }
+
+}
   
+  
+int menu(){
+  char c;
+  int cursorx = 40, cursory = 10, sel=0;
   system("clear");
   gotoxy(28,8);
   printf("Bem-vindo a Rush Knight!");
@@ -233,25 +244,55 @@ void menu(){
   printf("Ranking");
   gotoxy(28,14);
   printf("Sair");
-  getch();
-  gotoxy(29,8);
-  printf("11");
-  getch();
+  gotoxy(cursorx,cursory);
+  printf("<");
+  while( c != '\n'){
+    c = getch();
+    if(c == 's'){
+      gotoxy(cursorx,cursory);
+      printf(" ");
+      if(sel < 2){
+        sel++;
+        cursory = cursory + 2;
+        gotoxy(cursorx,cursory);
+        printf("<");
+      }
+      else{
+        sel = 0;
+        cursory = 10;
+        gotoxy(cursorx,cursory);
+        printf("<");
+      }
+    }
+    if(c == 'w'){
+      gotoxy(cursorx,cursory);
+      printf(" ");
+      if(sel > 0){
+        sel--;
+        cursory = cursory - 2;
+        gotoxy(cursorx,cursory);
+        printf("<");
+      }
+      else{
+        sel = 2;
+        cursory = 14;
+        gotoxy(cursorx,cursory);
+        printf("<");
+      }
+    }
+  }
+  return sel;
 }
 
 int main(){
 
+  hidecursor();
+  switch(menu()){
+    case(0):
+      iniciar();
+      break;
 
-
-  menu();
-  iniciar();
-  char mov;
-
-  while(mov != 'p'){
-
-    mov = getch();
-    movimento(mov);
-
+    case(2):
+      return 0;
   }
-  return 0;
 }
