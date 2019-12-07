@@ -146,7 +146,7 @@ void *gravidadeini(){
 
 }
 
-void *mvinimigo(){
+void *mvinimigo0(){
 
 while(1){
   if (mapa[inimigo[0].y + 1][inimigo[0].x] == 1){
@@ -170,6 +170,33 @@ while(1){
 
   }
 }
+
+}
+
+void *mvinimigo1(){
+
+  while(1){
+    if (mapa[inimigo[1].y + 1][inimigo[1].x] == 1){
+      if(mapa[inimigo[1].y][inimigo[1].x + 1] != 1){
+        while (1)
+        {
+          inimigo[1].x++;
+          usleep(100000);
+          if(mapa[inimigo[1].y][inimigo[1].x + 1] == 1) break;
+        }
+      }
+      if(mapa[inimigo[1].y][inimigo[1].x - 1] != 1){
+        while (1)
+        {
+          inimigo[1].x--;
+          usleep(100000);
+          if(mapa[inimigo[1].y][inimigo[1].x - 1] == 1) break;
+        }
+      }
+
+
+    }
+  }
 
 }
 
@@ -211,14 +238,15 @@ void iniciar(){
   inimigo[0].y = 2;
   inimigo[1].x = 31;
   inimigo[1].y = 2;
-  pthread_t gravity[2], frame, movime, cro;
+  pthread_t threads[10];
 
 
-  pthread_create(&gravity[0], NULL, gravidadeper, NULL);
-  pthread_create(&gravity[1], NULL, gravidadeini, NULL);
-  pthread_create(&frame, NULL, imprimir, NULL);
-  pthread_create(&movime, NULL, mvinimigo, NULL);
-  pthread_create(&cro, NULL, cronometro, NULL);
+  pthread_create(&threads[0], NULL, gravidadeper, NULL);
+  pthread_create(&threads[1], NULL, gravidadeini, NULL);
+  pthread_create(&threads[2], NULL, imprimir, NULL);
+  pthread_create(&threads[3], NULL, mvinimigo0, NULL);
+  pthread_create(&threads[4], NULL, mvinimigo1, NULL);
+  pthread_create(&threads[5], NULL, cronometro, NULL);
 
   char mov;
 
@@ -230,10 +258,12 @@ void iniciar(){
   }
 
 }
-
+  
+  
 int menu(){
   char c;
   int cursorx = 40, cursory = 10, sel=0;
+  system("clear");
   gotoxy(28,8);
   printf("Bem-vindo a Rush Knight!");
   gotoxy(28,10);
