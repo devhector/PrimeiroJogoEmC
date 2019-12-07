@@ -211,19 +211,20 @@ void iniciar(){
   inimigo[0].y = 2;
   inimigo[1].x = 31;
   inimigo[1].y = 2;
-  pthread_t gravity[2], frame, movime, cro;
+  pthread_t threads[5];
 
 
-  pthread_create(&gravity[0], NULL, gravidadeper, NULL);
-  pthread_create(&gravity[1], NULL, gravidadeini, NULL);
-  pthread_create(&frame, NULL, imprimir, NULL);
-  pthread_create(&movime, NULL, mvinimigo, NULL);
-  pthread_create(&cro, NULL, cronometro, NULL);
+  pthread_create(&threads[0], NULL, gravidadeper, NULL);
+  pthread_create(&threads[1], NULL, gravidadeini, NULL);
+  pthread_create(&threads[2], NULL, imprimir, NULL);
+  pthread_create(&threads[3], NULL, mvinimigo, NULL);
+  pthread_create(&threads[4], NULL, cronometro, NULL);
 
 }
 
 void menu(){
-  char c;
+  
+  system("clear");
   gotoxy(28,8);
   printf("Bem-vindo a Rush Knight!");
   gotoxy(28,10);
