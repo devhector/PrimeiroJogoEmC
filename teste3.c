@@ -12,8 +12,11 @@ Autores: Eduardo Nicoletti
 #include "bibliotecas/rlutil.h"
 #define PX 120
 #define PY 30
-char parede = '*', outra = 'x', person = 'O', ini = 'o', fase[30] = "mapa_novo";
-int mapa[PY][PX], G, min, seg;
+#define MAPAS 0
+char parede = '*', outra = 'x', person = 'O', ini = 'o', fase[30] = "mapa_novo",nome_player[50];
+int mapa[PY][PX], G, min = 0, seg = 0,pulando = 0, fase_atual=0, morte = 0;
+pthread_t id_threads[10];
+
 
 typedef struct{
   int x;
@@ -22,6 +25,19 @@ typedef struct{
 
 pos personagem, inimigo[2];
 
+void tela_morte(){
+  morte = 1;
+  for(int i = 0; i < 6; i++)
+    pthread_cancel(id_threads[i]);
+  cls();
+  gotoxy(28,8);
+  printf("Voce perdeu %s!", nome_player);
+  gotoxy(28,10);
+  printf("Fases percorridas: %i", fase_atual+1);
+  gotoxy(28,12);
+  printf("Pressione qualquer tecla para continuar!");
+  getch();
+}
 
 void CriarMapa(){
   for(int i = 0; i < PY; i ++)
@@ -35,7 +51,7 @@ void CriarMapa(){
 }
 
 void imprimirMapa(){
-  system("clear");
+  cls();
 
   for(int i = 0; i < PY; i ++){
     for(int j = 0; j < PX; j++){
@@ -64,16 +80,15 @@ void movimento(char mv){
   if (mv == 'd')
     if (mapa[personagem.y][personagem.x + 1] != 1) ++personagem.x;
   if (mv == 'l') personagem.y = 2;
-/*  if (mv == 'w')
+  if (mv == 'w' && pulando == 0)
     if (G == 0)
-      G = 4;*/
+      G = 4;
   if (mv == 's')
     if (personagem.y < 28)
       personagem.y++;
 
 
 }
-
 
 void ler_mapa(){
     char c;
@@ -102,31 +117,39 @@ void ler_mapa(){
 
 void *gravidadeper(){
 
-  while(1){
+  id_threads[0] = pthread_self();
+
+  while(!morte){
 
     if((personagem.x == inimigo[0].x)&&(personagem.y == inimigo[0].y)){
-      personagem.x = 2;
-      personagem.y = 2;
+      morte = 1;
     }
 
     if(G == 0){
-      if(mapa[personagem.y + 1][personagem.x] != 1){
+      if(mapa[personagem.y + 1][personagem.x] == 1 ){
+        pulando = 0;
+      }
+      if(mapa[personagem.y + 1][personagem.x] != 1 ){
         ++personagem.y;
         usleep(85000);
       }
     }else {
       if(1){
+        pulando = 1;
         personagem.y--;
         usleep(90000);
         G--;
       }
     }
   }
+  pthread_exit(NULL);
 }
 
 void *gravidadeini(){
 
-  while (1)
+  id_threads[1] = pthread_self();
+
+  while (!morte)
   {
     if(G == 0){
 
@@ -144,12 +167,14 @@ void *gravidadeini(){
 
     }
   }
-
+  pthread_exit(NULL);
 }
 
 void *mvinimigo0(){
 
-while(1){
+id_threads[3] = pthread_self();
+
+while(!morte){
   if (mapa[inimigo[0].y + 1][inimigo[0].x] == 1){
     if(mapa[inimigo[0].y][inimigo[0].x + 1] != 1){
       while (1)
@@ -171,12 +196,14 @@ while(1){
 
   }
 }
-
+  pthread_exit(NULL);
 }
 
 void *mvinimigo1(){
 
-  while(1){
+  id_threads[4] = pthread_self();
+
+  while(!morte){
     if (mapa[inimigo[1].y + 1][inimigo[1].x] == 1){
       if(mapa[inimigo[1].y][inimigo[1].x + 1] != 1){
         while (1)
@@ -198,24 +225,29 @@ void *mvinimigo1(){
 
     }
   }
-
+  pthread_exit(NULL);
 }
 
 void *imprimir(){
   //CriarMapa();
 
-  while(1){
+  id_threads[2] = pthread_self();
+
+  while(morte != 1){
     usleep(50000);
     imprimirMapa();
   }
+  pthread_exit(NULL);
 }
 
 void *cronometro(){
 
+id_threads[5] = pthread_self();
+
 min = 0;
 seg = 0;
 
-while (1)
+while (morte != 1)
 {
   for (int i = 0; i < 60; i ++){
 
@@ -229,10 +261,23 @@ while (1)
   }
 }
 
+min = 0;
+seg = 0;
+
+pthread_exit(NULL);
+
 }
 
 void iniciar(){
-  ler_mapa();
+
+  morte = 0;
+  cls();
+  gotoxy(28,8);
+  printf("Insira o seu nome: ");
+  gotoxy(30,10);
+  printf(">");
+  scanf("%s", nome_player);
+
   personagem.x = 2;
   personagem.y = 2;
   inimigo[0].x = 62;
@@ -251,24 +296,18 @@ void iniciar(){
 
   char mov;
 
-  while(mov != 'p'){
+  while(morte != 1){
 
     mov = getch();
-  
-    if(mov == 'w'){
-      if(G == 0)
-        G = 4;
-    }else
-      movimento(mov);
-
-    
-    
+    movimento(mov);
 
   }
+  tela_morte();
+  return;
 
 }
-  
-  
+
+
 int menu(){
   char c;
   int cursorx = 40, cursory = 10, sel=0;
@@ -321,16 +360,23 @@ int menu(){
   return sel;
 }
 
+
+
 int main(){
-
+  ler_mapa();
   hidecursor();
-  switch(menu()){
-    case(0):
-      iniciar();
-      break;
+  char c;
+  while(1){
+    c = menu();
+    switch(c){
+      case(0):
+        iniciar();
+        break;
 
-    case(2):
-      printf("\n");
-      return 0;
+        case(2):
+          return 0;
+    }
+    fflush(stdin);
+
   }
 }
