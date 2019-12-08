@@ -13,31 +13,20 @@ Autores: Eduardo Nicoletti
 #define PX 120
 #define PY 30
 #define MAPAS 0
-char parede = '*', outra = 'x', person = 'O', ini = 'o', fase[30] = "mapa_novo",nome_player[50];
-int mapa[PY][PX], G, min = 0, seg = 0,pulando = 0, fase_atual=0, morte = 0;
+char parede = '*', outra = 'x', person = 'O', ini = 'o',nome_player[50], fim = '$';
+int mapa[PY][PX], G, min = 0, seg = 0,pulando = 0, fase_atual=0,venceu = 0, morte = 0;
 pthread_t id_threads[10];
 
 
 typedef struct{
   int x;
   int y;
+  int inicial_x;
+  int inicial_y;
 }pos;
 
-pos personagem, inimigo[2];
+pos personagem, inimigo[2],saida;
 
-void tela_morte(){
-  morte = 1;
-  for(int i = 0; i < 6; i++)
-    pthread_cancel(id_threads[i]);
-  cls();
-  gotoxy(28,8);
-  printf("Voce perdeu %s!", nome_player);
-  gotoxy(28,10);
-  printf("Fases percorridas: %i", fase_atual+1);
-  gotoxy(28,12);
-  printf("Pressione qualquer tecla para continuar!");
-  getch();
-}
 
 void CriarMapa(){
   for(int i = 0; i < PY; i ++)
@@ -57,10 +46,12 @@ void imprimirMapa(){
     for(int j = 0; j < PX; j++){
       if(mapa[i][j] == 1) printf("%c", parede);
       else if (mapa[i][j] == 2) printf("%c", outra);
+      else if (mapa[i][j] == 4) printf("%c", fim);
       else if ((i == personagem.y)&&(j == personagem.x)) printf("%c", person);
       else if ((i == inimigo[0].y)&&(j == inimigo[0].x)) printf("%c", ini);
       else if ((i == inimigo[1].y)&&(j == inimigo[1].x)) printf("%c", ini);
-      else if (mapa[i][j] == 0) printf(" ");
+      //else if (mapa[i][j] == 0) printf(" ");
+      else printf(" ");
 
     }
     printf("\n");
@@ -82,7 +73,7 @@ void movimento(char mv){
   if (mv == 'l') personagem.y = 2;
   if (mv == 'w' && pulando == 0)
     if (G == 0)
-      G = 4;
+      G = 5;
   if (mv == 's')
     if (personagem.y < 28)
       personagem.y++;
@@ -90,7 +81,7 @@ void movimento(char mv){
 
 }
 
-void ler_mapa(){
+void ler_mapa(char fase[]){
     char c;
     int i ,j ,num;
     FILE *arq;
@@ -104,8 +95,15 @@ void ler_mapa(){
         for(j = 0; j < PX; j++){
             c= fgetc(arq);
             num = atoi(&c);
+            if(num == 3){
+              personagem.inicial_x = j;
+              personagem.inicial_y = i;
+            }else if(num == 4){
+              saida.x = j;
+              saida.y = i;
+            }
             mapa[i][j]= num;
-        }
+          }
             c = fgetc(arq);
             if(c != '\n'){
                 num = atoi(&c);
@@ -124,6 +122,14 @@ void *gravidadeper(){
     if((personagem.x == inimigo[0].x)&&(personagem.y == inimigo[0].y)){
       morte = 1;
     }
+    if((personagem.x == inimigo[1].x)&&(personagem.y == inimigo[1].y)){
+      morte = 1;
+    }
+    if((personagem.x == saida.x)&&(personagem.y == saida.y)){
+      venceu = 1;
+      morte = 1;
+    }
+
 
     if(G == 0){
       if(mapa[personagem.y + 1][personagem.x] == 1 ){
@@ -137,7 +143,7 @@ void *gravidadeper(){
       if(1){
         pulando = 1;
         personagem.y--;
-        usleep(90000);
+        usleep(101000);
         G--;
       }
     }
@@ -229,8 +235,6 @@ void *mvinimigo1(){
 }
 
 void *imprimir(){
-  //CriarMapa();
-
   id_threads[2] = pthread_self();
 
   while(morte != 1){
@@ -269,7 +273,7 @@ pthread_exit(NULL);
 }
 
 void iniciar(){
-
+  venceu = 0;
   morte = 0;
   cls();
   gotoxy(28,8);
@@ -278,8 +282,8 @@ void iniciar(){
   printf(">");
   scanf("%s", nome_player);
 
-  personagem.x = 2;
-  personagem.y = 2;
+  personagem.x=personagem.inicial_x;
+  personagem.y=personagem.inicial_y;
   inimigo[0].x = 62;
   inimigo[0].y = 2;
   inimigo[1].x = 31;
@@ -302,9 +306,44 @@ void iniciar(){
     movimento(mov);
 
   }
-  tela_morte();
+  if(venceu ==1){
+    tela_fim_fase();
+  }else{
+    tela_morte();
+    }
   return;
 
+}
+
+void tela_fim_fase(){
+  venceu = 1;
+  for(int i = 0; i < 6; i++)
+    pthread_cancel(id_threads[i]);
+  cls();
+  gotoxy(28,8);
+  printf("Voce conseguiu %s!", nome_player);
+  gotoxy(28,10);
+  printf("Fases percorridas até agora: %i", fase_atual+1);
+  gotoxy(28,12);
+  printf("Tempo Conquistado: %i : %i", min,seg);
+  gotoxy(28,14);
+  printf("Pressione qualquer tecla para continuar!");
+  getch();
+
+}
+
+void tela_morte(){
+  morte = 1;
+  for(int i = 0; i < 6; i++)
+    pthread_cancel(id_threads[i]);
+  cls();
+  gotoxy(28,8);
+  printf("Voce perdeu %s!", nome_player);
+  gotoxy(28,10);
+  printf("Fases percorridas: %i", fase_atual+1);
+  gotoxy(28,12);
+  printf("Pressione qualquer tecla para continuar!");
+  getch();
 }
 
 
@@ -322,6 +361,7 @@ int menu(){
   printf("Sair");
   gotoxy(cursorx,cursory);
   printf("<");
+  c = "0";
   while( c != '\n'){
     c = getch();
     if(c == 's'){
@@ -363,7 +403,8 @@ int menu(){
 
 
 int main(){
-  ler_mapa();
+  char fase[15] = "mapa_novo";
+  ler_mapa(fase);
   hidecursor();
   char c;
   while(1){
@@ -372,9 +413,14 @@ int main(){
       case(0):
         iniciar();
         break;
-
-        case(2):
-          return 0;
+      case(1):
+        cls();
+        printf("Ainda não implementado...");
+        getch();
+        cls();
+        break;
+      case(2):
+        return 0;
     }
     fflush(stdin);
 
