@@ -383,7 +383,7 @@ int menu(){
   int cursorx = 40, cursory = 10, sel=0;
   system("clear");
   gotoxy(28,8);
-  printf("Bem-vindo a Rush Knight!");
+  printf("Bem-vindo ao Princeso pulante do Sul!");
   gotoxy(28,10);
   printf("Iniciar");
   gotoxy(28,12);
