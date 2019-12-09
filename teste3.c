@@ -243,7 +243,7 @@ void *imprimir(){
   id_threads[2] = pthread_self();
 
   while(morte != 1){
-    usleep(50000);
+    usleep(55000);
     imprimirMapa();
   }
   pthread_exit(NULL);
@@ -360,7 +360,7 @@ void iniciar(){
     movimento(mov);
 
   }
-  if(venceu ==1 && fase_atual <= fases_max){
+  if(venceu ==1 && fase_atual < fases_max){
     tela_fim_fase();
     iniciar();
 
