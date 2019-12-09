@@ -13,10 +13,10 @@ Autores: Eduardo Nicoletti
 #define PX 120
 #define PY 30
 #define MAPAS 0
-char parede = '*', outra = 'x', person = 'O', ini = 'o',nome_player[50], fim = '$';
-int mapa[PY][PX], G, min = 0, seg = 0,pulando = 0, fase_atual=0,venceu = 0, morte = 0;
+char parede = '*', outra = 'x', person = 'O', ini = 'o',nome_player[50], fim = 'H';
+char *fases[5] = {"MAPA1", "MAPA2","MAPA3","MAPA4", "MAPA5"};
+int mapa[PY][PX], G, min = 0, seg = 0,pulando = 0, fase_atual=0,fases_max = 5,venceu = 0, morte = 0;
 pthread_t id_threads[10];
-
 
 typedef struct{
   int x;
@@ -26,7 +26,6 @@ typedef struct{
 }pos;
 
 pos personagem, inimigo[2],saida;
-
 
 void CriarMapa(){
   for(int i = 0; i < PY; i ++)
@@ -87,7 +86,7 @@ void ler_mapa(char fase[]){
     FILE *arq;
     if (!(arq = fopen(fase,"r"))) /* Caso ocorra algum erro na abertura do arquivo..*/
         {                           /* o programa aborta automaticamente */
-                printf("Erro! Impossivel abrir o arquivo!\n");
+                printf("Erro! Impossivel abrir o arquivo: %s\n", fase);
                 exit(1);
         }
 
@@ -101,6 +100,12 @@ void ler_mapa(char fase[]){
             }else if(num == 4){
               saida.x = j;
               saida.y = i;
+            }else if(num == 6){
+              inimigo[0].inicial_x = j;
+              inimigo[0].inicial_y = i;
+            }else if(num == 7){
+              inimigo[1].inicial_x = j;
+              inimigo[1].inicial_y = i;
             }
             mapa[i][j]= num;
           }
@@ -182,20 +187,20 @@ id_threads[3] = pthread_self();
 
 while(!morte){
   if (mapa[inimigo[0].y + 1][inimigo[0].x] == 1){
-    if(mapa[inimigo[0].y][inimigo[0].x + 1] != 1){
+    if(mapa[inimigo[0].y][inimigo[0].x + 1] != 5){
       while (1)
       {
         inimigo[0].x++;
         usleep(100000);
-        if(mapa[inimigo[0].y][inimigo[0].x + 1] == 1) break;
+        if(mapa[inimigo[0].y][inimigo[0].x + 1] == 5 || mapa[inimigo[0].y][inimigo[0].x + 1] == 1) break;
       }
     }
-    if(mapa[inimigo[0].y][inimigo[0].x - 1] != 1){
+    if(mapa[inimigo[0].y][inimigo[0].x - 1] != 5){
       while (1)
       {
         inimigo[0].x--;
         usleep(100000);
-        if(mapa[inimigo[0].y][inimigo[0].x - 1] == 1) break;
+        if(mapa[inimigo[0].y][inimigo[0].x - 1] == 5 || mapa[inimigo[0].y][inimigo[0].x - 1] == 1) break;
       }
     }
 
@@ -211,20 +216,20 @@ void *mvinimigo1(){
 
   while(!morte){
     if (mapa[inimigo[1].y + 1][inimigo[1].x] == 1){
-      if(mapa[inimigo[1].y][inimigo[1].x + 1] != 1){
+      if(mapa[inimigo[1].y][inimigo[1].x + 1] != 5){
         while (1)
         {
           inimigo[1].x++;
           usleep(100000);
-          if(mapa[inimigo[1].y][inimigo[1].x + 1] == 1) break;
+          if(mapa[inimigo[1].y][inimigo[1].x + 1] == 5 || mapa[inimigo[1].y][inimigo[1].x + 1] == 1 ) break;
         }
       }
-      if(mapa[inimigo[1].y][inimigo[1].x - 1] != 1){
+      if(mapa[inimigo[1].y][inimigo[1].x - 1] != 5){
         while (1)
         {
           inimigo[1].x--;
           usleep(100000);
-          if(mapa[inimigo[1].y][inimigo[1].x - 1] == 1) break;
+          if(mapa[inimigo[1].y][inimigo[1].x - 1] == 5 || mapa[inimigo[1].y][inimigo[1].x - 1] == 1) break;
         }
       }
 
@@ -275,19 +280,22 @@ pthread_exit(NULL);
 void iniciar(){
   venceu = 0;
   morte = 0;
+  ler_mapa(fases[fase_atual]);
   cls();
-  gotoxy(28,8);
-  printf("Insira o seu nome: ");
-  gotoxy(30,10);
-  printf(">");
-  scanf("%s", nome_player);
+  if(fase_atual==0){
+    gotoxy(28,8);
+    printf("Insira o seu nome: ");
+    gotoxy(30,10);
+    printf(">");
+    scanf("%s", nome_player);
+  }
 
   personagem.x=personagem.inicial_x;
   personagem.y=personagem.inicial_y;
-  inimigo[0].x = 62;
-  inimigo[0].y = 2;
-  inimigo[1].x = 31;
-  inimigo[1].y = 2;
+  inimigo[0].x = inimigo[0].inicial_x;
+  inimigo[0].y = inimigo[0].inicial_y;
+  inimigo[1].x = inimigo[1].inicial_x;
+  inimigo[1].y = inimigo[1].inicial_y;
   pthread_t threads[10];
 
 
@@ -306,29 +314,46 @@ void iniciar(){
     movimento(mov);
 
   }
-  if(venceu ==1){
+  if(venceu ==1 && fase_atual <= fases_max){
     tela_fim_fase();
-  }else{
-    tela_morte();
-    }
-  return;
+    iniciar();
 
+  }else{
+    if(venceu!=1){
+      tela_morte();
+      return;
+    }
+  }
 }
 
 void tela_fim_fase(){
   venceu = 1;
+  fase_atual++;
   for(int i = 0; i < 6; i++)
     pthread_cancel(id_threads[i]);
   cls();
-  gotoxy(28,8);
-  printf("Voce conseguiu %s!", nome_player);
-  gotoxy(28,10);
-  printf("Fases percorridas até agora: %i", fase_atual+1);
-  gotoxy(28,12);
-  printf("Tempo Conquistado: %i : %i", min,seg);
-  gotoxy(28,14);
-  printf("Pressione qualquer tecla para continuar!");
-  getch();
+  if(fase_atual<fases_max){
+    gotoxy(28,8);
+    printf("Voce conseguiu %s!", nome_player);
+    gotoxy(28,10);
+    printf("Fases percorridas até agora: %i", fase_atual);
+    gotoxy(28,12);
+    printf("Tempo Conquistado: %i : %i", min,seg);
+    gotoxy(28,14);
+    printf("Pressione qualquer tecla para continuar!");
+    getch();
+  }else{
+    gotoxy(28,8);
+    printf("Você Conseguiu %s!", nome_player);
+    gotoxy(28,10);
+    printf("Você Percorreu Todas As Fases!", fase_atual);
+    gotoxy(28,12);
+    printf("Tempo Conquistado Na Fase Final: %i : %i", min,seg);
+    gotoxy(28,14);
+    printf("Pressione qualquer tecla para continuar!");
+    getch();
+  }
+
 
 }
 
@@ -346,7 +371,6 @@ void tela_morte(){
   getch();
 }
 
-
 int menu(){
   char c;
   int cursorx = 40, cursory = 10, sel=0;
@@ -358,7 +382,9 @@ int menu(){
   gotoxy(28,12);
   printf("Ranking");
   gotoxy(28,14);
-  printf("Sair");
+  printf("Mapa Custom");
+  gotoxy(28,16);
+  printf("Sair Do Jogo");
   gotoxy(cursorx,cursory);
   printf("<");
   c = "0";
@@ -367,7 +393,7 @@ int menu(){
     if(c == 's'){
       gotoxy(cursorx,cursory);
       printf(" ");
-      if(sel < 2){
+      if(sel < 3){
         sel++;
         cursory = cursory + 2;
         gotoxy(cursorx,cursory);
@@ -390,8 +416,8 @@ int menu(){
         printf("<");
       }
       else{
-        sel = 2;
-        cursory = 14;
+        sel = 3;
+        cursory = 16;
         gotoxy(cursorx,cursory);
         printf("<");
       }
@@ -400,11 +426,10 @@ int menu(){
   return sel;
 }
 
-
-
 int main(){
-  char fase[15] = "mapa_novo";
-  ler_mapa(fase);
+
+  //char *fases_custom[5];
+
   hidecursor();
   char c;
   while(1){
@@ -420,8 +445,15 @@ int main(){
         cls();
         break;
       case(2):
+        cls();
+        printf("Ainda não implementado...");
+        getch();
+        cls();
+        break;
+      case(3):
         return 0;
     }
+    fase_atual = 0;
     fflush(stdin);
 
   }

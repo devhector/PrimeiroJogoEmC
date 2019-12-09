@@ -17,7 +17,7 @@ char parede = '*', outra = 'x', person = 'O', ini = 'o', fase[30] = "mapa_novo",
 int mapa[PY][PX], G, min, seg,pulando = 0, fase_atual=0, morte = 0;
 
 typedef struct{
-  int x;
+  int x;];
   int y;
 }pos;
 
@@ -281,15 +281,15 @@ void iniciar(){
   while(morte != 1){
 
     mov = getch();
-  
+
     if(mov == 'w'){
       if(G == 0)
         G = 4;
     }else
       movimento(mov);
 
-    
-    
+
+
 
   }
   tela_morte();
