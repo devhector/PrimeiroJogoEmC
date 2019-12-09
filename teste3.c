@@ -14,11 +14,14 @@ Autores: Eduardo Nicoletti
 #define PY 30
 #define MAPAS 0
 char parede = '*', outra = 'x', person = 'O', ini = 'o',nome_player[50], fim = 'H';
-char *fases[5] = {"MAPA1", "MAPA2","MAPA3","MAPA4", "MAPA5"};
+char *fases[5] = {"maps/MAPA1", "maps/MAPA2","maps/MAPA3","maps/MAPA4", "maps/MAPA5"};
 int mapa[PY][PX], G, min = 0, seg = 0,pulando = 0, fase_atual=0,fases_max = 5,venceu = 0, morte = 0;
+
+//variavel id para receber a identificação das threads e poder encerrar quando a fase acabar
 pthread_t id_threads[10];
 
-typedef struct{
+//struct feita para usar como posição e ficar mais organizado.
+typedef struct{ 
   int x;
   int y;
   int inicial_x;
@@ -27,7 +30,7 @@ typedef struct{
 
 pos personagem, inimigo[2],saida;
 
-void CriarMapa(){
+void CriarMapa(){ //função autoexplicativa, mas usada para criar a base dos MAPAS
   for(int i = 0; i < PY; i ++)
     for(int j = 0; j < PX; j++){
       if(i == 0 || i == PY - 1) mapa[i][j] = 1;
@@ -38,7 +41,7 @@ void CriarMapa(){
     }
 }
 
-void imprimirMapa(){
+void imprimirMapa(){ //função autoexplicativa
   cls();
 
   for(int i = 0; i < PY; i ++){
@@ -49,7 +52,6 @@ void imprimirMapa(){
       else if ((i == personagem.y)&&(j == personagem.x)) printf("%c", person);
       else if ((i == inimigo[0].y)&&(j == inimigo[0].x)) printf("%c", ini);
       else if ((i == inimigo[1].y)&&(j == inimigo[1].x)) printf("%c", ini);
-      //else if (mapa[i][j] == 0) printf(" ");
       else printf(" ");
 
     }
@@ -63,7 +65,7 @@ void imprimirMapa(){
   printf("\n");
 }
 
-void movimento(char mv){
+void movimento(char mv){ //função para o movimento do personagem
 
   if (mv == 'a')
     if (mapa[personagem.y][personagem.x - 1] != 1) --personagem.x;
@@ -72,7 +74,7 @@ void movimento(char mv){
   if (mv == 'l') personagem.y = 2;
   if (mv == 'w' && pulando == 0)
     if (G == 0)
-      G = 5;
+      G = 5; // "inversão" da "gravidade"
   if (mv == 's')
     if (personagem.y < 28)
       personagem.y++;
@@ -80,7 +82,7 @@ void movimento(char mv){
 
 }
 
-void ler_mapa(char fase[]){
+void ler_mapa(char fase[]){ //leitura do mapa, através dos binários
     char c;
     int i ,j ,num;
     FILE *arq;
@@ -118,45 +120,46 @@ void ler_mapa(char fase[]){
     fclose(arq);
 }
 
-void *gravidadeper(){
+// A primeira thread iniciada, usada como a gravidade do personagem, manipulando a posição global do personagem
+void *gravidadeper(){ 
 
-  id_threads[0] = pthread_self();
-
+  id_threads[0] = pthread_self(); //a função chamada retorna uma identificação e essa identificação é passada para
+                                  // outra função abaixo, que por sua vez encerra essa thread, no final de cada fase
   while(!morte){
 
-    if((personagem.x == inimigo[0].x)&&(personagem.y == inimigo[0].y)){
+    if((personagem.x == inimigo[0].x)&&(personagem.y == inimigo[0].y)){ //usado como colisão do personagem com o inimigo
       morte = 1;
     }
     if((personagem.x == inimigo[1].x)&&(personagem.y == inimigo[1].y)){
       morte = 1;
     }
-    if((personagem.x == saida.x)&&(personagem.y == saida.y)){
+    if((personagem.x == saida.x)&&(personagem.y == saida.y)){ //colisão mas com o final da fase, mostrando o fim da fase
       venceu = 1;
       morte = 1;
     }
 
 
     if(G == 0){
-      if(mapa[personagem.y + 1][personagem.x] == 1 ){
+      if(mapa[personagem.y + 1][personagem.x] == 1 ){ //flag para n haver mais de 1 pulo
         pulando = 0;
       }
-      if(mapa[personagem.y + 1][personagem.x] != 1 ){
+      if(mapa[personagem.y + 1][personagem.x] != 1 ){ //"gravidade", implementa o y do personagem dando efeito de cair
         ++personagem.y;
-        usleep(85000);
+        usleep(85000); //usado para dar delay
       }
     }else {
-      if(1){
+      
         pulando = 1;
         personagem.y--;
         usleep(101000);
-        G--;
-      }
+        G--; //usado como "pulo" no movimento()
+      
     }
   }
   pthread_exit(NULL);
 }
 
-void *gravidadeini(){
+void *gravidadeini(){ //gravidade do inimigo
 
   id_threads[1] = pthread_self();
 
@@ -166,7 +169,6 @@ void *gravidadeini(){
 
       if(mapa[inimigo[0].y + 1][inimigo[0].x] != 1){
          ++inimigo[0].y;
-        //usleep(70000);
       }
 
       if(mapa[inimigo[1].y + 1][inimigo[1].x] != 1){
@@ -181,7 +183,7 @@ void *gravidadeini(){
   pthread_exit(NULL);
 }
 
-void *mvinimigo0(){
+void *mvinimigo0(){ //função usada para dar movimento ao inimigo
 
 id_threads[3] = pthread_self();
 
@@ -192,7 +194,7 @@ while(!morte){
       {
         inimigo[0].x++;
         usleep(100000);
-        if(mapa[inimigo[0].y][inimigo[0].x + 1] == 5 || mapa[inimigo[0].y][inimigo[0].x + 1] == 1) break;
+        if(mapa[inimigo[0].y][inimigo[0].x + 1] == 5 || mapa[inimigo[0].y][inimigo[0].x + 1] == 1) break; //condição de parada e mudança de direção
       }
     }
     if(mapa[inimigo[0].y][inimigo[0].x - 1] != 5){
@@ -239,6 +241,7 @@ void *mvinimigo1(){
   pthread_exit(NULL);
 }
 
+//usada para imprimir constantemente
 void *imprimir(){
   id_threads[2] = pthread_self();
 
@@ -249,6 +252,7 @@ void *imprimir(){
   pthread_exit(NULL);
 }
 
+//autoexplicativa
 void *cronometro(){
 
 id_threads[5] = pthread_self();
@@ -266,7 +270,7 @@ while (morte != 1)
       min++;
       seg = 0;
     }
-  sleep(1);
+  sleep(1);//espera 1s até continuar
   }
 }
 
@@ -277,11 +281,12 @@ pthread_exit(NULL);
 
 }
 
+//autoexplicativa
 void tela_fim_fase(){
   venceu = 1;
   fase_atual++;
   for(int i = 0; i < 6; i++)
-    pthread_cancel(id_threads[i]);
+    pthread_cancel(id_threads[i]);//função para cancelar todas as threads, e elas são iniciadas novamente em outro momento
   cls();
   if(fase_atual<fases_max){
     gotoxy(28,8);
