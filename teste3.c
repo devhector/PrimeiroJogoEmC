@@ -277,6 +277,52 @@ pthread_exit(NULL);
 
 }
 
+void tela_fim_fase(){
+  venceu = 1;
+  fase_atual++;
+  for(int i = 0; i < 6; i++)
+    pthread_cancel(id_threads[i]);
+  cls();
+  if(fase_atual<fases_max){
+    gotoxy(28,8);
+    printf("Voce conseguiu %s!", nome_player);
+    gotoxy(28,10);
+    printf("Fases percorridas até agora: %i", fase_atual);
+    gotoxy(28,12);
+    printf("Tempo Conquistado: %i : %i", min,seg);
+    gotoxy(28,14);
+    printf("Pressione qualquer tecla para continuar!");
+    getch();
+  }else{
+    gotoxy(28,8);
+    printf("Você Conseguiu %s!", nome_player);
+    gotoxy(28,10);
+    printf("Você Percorreu Todas As Fases!");
+    gotoxy(28,12);
+    printf("Tempo Conquistado Na Fase Final: %i : %i", min,seg);
+    gotoxy(28,14);
+    printf("Pressione qualquer tecla para continuar!");
+    getch();
+  }
+
+
+}
+
+void tela_morte(){
+  morte = 1;
+  for(int i = 0; i < 6; i++)
+    pthread_cancel(id_threads[i]);
+  cls();
+  gotoxy(28,8);
+  printf("Voce perdeu %s!", nome_player);
+  gotoxy(28,10);
+  printf("Fases percorridas: %i", fase_atual+1);
+  gotoxy(28,12);
+  printf("Pressione qualquer tecla para continuar!");
+  getch();
+}
+
+
 void iniciar(){
   venceu = 0;
   morte = 0;
@@ -326,50 +372,6 @@ void iniciar(){
   }
 }
 
-void tela_fim_fase(){
-  venceu = 1;
-  fase_atual++;
-  for(int i = 0; i < 6; i++)
-    pthread_cancel(id_threads[i]);
-  cls();
-  if(fase_atual<fases_max){
-    gotoxy(28,8);
-    printf("Voce conseguiu %s!", nome_player);
-    gotoxy(28,10);
-    printf("Fases percorridas até agora: %i", fase_atual);
-    gotoxy(28,12);
-    printf("Tempo Conquistado: %i : %i", min,seg);
-    gotoxy(28,14);
-    printf("Pressione qualquer tecla para continuar!");
-    getch();
-  }else{
-    gotoxy(28,8);
-    printf("Você Conseguiu %s!", nome_player);
-    gotoxy(28,10);
-    printf("Você Percorreu Todas As Fases!", fase_atual);
-    gotoxy(28,12);
-    printf("Tempo Conquistado Na Fase Final: %i : %i", min,seg);
-    gotoxy(28,14);
-    printf("Pressione qualquer tecla para continuar!");
-    getch();
-  }
-
-
-}
-
-void tela_morte(){
-  morte = 1;
-  for(int i = 0; i < 6; i++)
-    pthread_cancel(id_threads[i]);
-  cls();
-  gotoxy(28,8);
-  printf("Voce perdeu %s!", nome_player);
-  gotoxy(28,10);
-  printf("Fases percorridas: %i", fase_atual+1);
-  gotoxy(28,12);
-  printf("Pressione qualquer tecla para continuar!");
-  getch();
-}
 
 int menu(){
   char c;
@@ -387,7 +389,7 @@ int menu(){
   printf("Sair Do Jogo");
   gotoxy(cursorx,cursory);
   printf("<");
-  c = "0";
+  c = '0';
   while( c != '\n'){
     c = getch();
     if(c == 's'){
