@@ -15,7 +15,7 @@ Autores: Eduardo Nicoletti
 #define MAPAS 0
 char parede = '*', outra = 'x', person = 'O', ini = 'o',nome_player[50], fim = 'H';
 char *fases[5] = {"MAPA1", "MAPA2","MAPA3","MAPA4", "MAPA5"};
-int mapa[PY][PX], G, min = 0, seg = 0,pulando = 0, fase_atual=0,fases_max = 5,venceu = 0, morte = 0;
+int mapa[PY][PX], G, min = 0, seg = 0,pulando = 0, fase_atual=0,fases_max = 4,venceu = 0, morte = 0;
 pthread_t id_threads[10];
 
 typedef struct{
@@ -279,19 +279,22 @@ pthread_exit(NULL);
 
 void tela_fim_fase(){
   venceu = 1;
-  fase_atual++;
-  for(int i = 0; i < 6; i++)
+  for(int i = 0; i < 5; i++)
     pthread_cancel(id_threads[i]);
+  if(fase_atual == fases_max){
+    pthread_cancel(id_threads[5]);
+  }
   cls();
   if(fase_atual<fases_max){
     gotoxy(28,8);
     printf("Voce conseguiu %s!", nome_player);
     gotoxy(28,10);
-    printf("Fases percorridas até agora: %i", fase_atual);
+    printf("Fases percorridas até agora: %i", fase_atual+1);
     gotoxy(28,12);
-    printf("Tempo Conquistado: %i : %i", min,seg);
+    printf("Tempo Atual: %i : %i", min,seg);
     gotoxy(28,14);
     printf("Pressione qualquer tecla para continuar!");
+    fase_atual++;
     getch();
   }else{
     gotoxy(28,8);
@@ -299,12 +302,11 @@ void tela_fim_fase(){
     gotoxy(28,10);
     printf("Você Percorreu Todas As Fases!");
     gotoxy(28,12);
-    printf("Tempo Conquistado Na Fase Final: %i : %i", min,seg);
+    printf("Tempo Conquistado No Total: %i : %i", min,seg);
     gotoxy(28,14);
     printf("Pressione qualquer tecla para continuar!");
     getch();
   }
-
 
 }
 
@@ -350,7 +352,8 @@ void iniciar(){
   pthread_create(&threads[2], NULL, imprimir, NULL);
   pthread_create(&threads[3], NULL, mvinimigo0, NULL);
   pthread_create(&threads[4], NULL, mvinimigo1, NULL);
-  pthread_create(&threads[5], NULL, cronometro, NULL);
+  if(fase_atual==0)
+    pthread_create(&threads[5], NULL, cronometro, NULL);
 
   char mov;
 
@@ -363,14 +366,17 @@ void iniciar(){
   if(venceu ==1 && fase_atual < fases_max){
     tela_fim_fase();
     iniciar();
-
-  }else{
-    if(venceu!=1){
-      tela_morte();
-      return;
-    }
+  }
+  if(venceu == 1){
+    tela_fim_fase();
+    return;
+  }
+  if(venceu!=1){
+    tela_morte();
+    return;
   }
 }
+
 
 
 int menu(){
