@@ -284,17 +284,11 @@ pthread_exit(NULL);
 //autoexplicativa
 void tela_fim_fase(){
   venceu = 1;
-<<<<<<< HEAD
-  fase_atual++;
-  for(int i = 0; i < 6; i++)
-    pthread_cancel(id_threads[i]);//função para cancelar todas as threads, e elas são iniciadas novamente em outro momento
-=======
   for(int i = 0; i < 5; i++)
     pthread_cancel(id_threads[i]);
   if(fase_atual == fases_max){
     pthread_cancel(id_threads[5]);
   }
->>>>>>> 69f59243202cf4f30d0d48dc90c13c3231e74e3e
   cls();
   if(fase_atual<fases_max){
     gotoxy(28,8);
