@@ -14,10 +14,15 @@ Autores: Eduardo Nicoletti
 #define PY 30
 #define MAPAS 0
 char parede = '*', outra = 'x', person = 'O', ini = 'o',nome_player[50], fim = 'H';
+<<<<<<< HEAD
 char *fases[5] = {"maps/MAPA1", "maps/MAPA2","maps/MAPA3","maps/MAPA4", "maps/MAPA5"};
 int mapa[PY][PX], G, min = 0, seg = 0,pulando = 0, fase_atual=0,fases_max = 5,venceu = 0, morte = 0;
 
 //variavel id para receber a identificação das threads e poder encerrar quando a fase acabar
+=======
+char *fases[5] = {"MAPA1", "MAPA2","MAPA3","MAPA4", "MAPA5"};
+int mapa[PY][PX], G, min = 0, seg = 0,pulando = 0, fase_atual=0,fases_max = 4,venceu = 0, morte = 0;
+>>>>>>> 69f59243202cf4f30d0d48dc90c13c3231e74e3e
 pthread_t id_threads[10];
 
 //struct feita para usar como posição e ficar mais organizado.
