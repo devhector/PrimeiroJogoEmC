@@ -31,7 +31,7 @@ void CriarMapa(){ //função autoexplicativa, mas usada para criar a base dos MA
 
 void imprimirMapa(){ //função autoexplicativa
   cls();
-
+  printf("\t \t \t \t \t \t tempo: %d:%d\n", min, seg);
   for(int i = 0; i < PY; i ++){
     for(int j = 0; j < PX; j++){
       if(mapa[i][j] == 1) printf("%c", parede);
@@ -45,12 +45,11 @@ void imprimirMapa(){ //função autoexplicativa
     }
     printf("\n");
   }
-  printf("\n %d", mapa[personagem.y + 1][personagem.x]);
+  /*printf("\n %d", mapa[personagem.y + 1][personagem.x]);
   printf(" %d ", mapa[personagem.y][personagem.x - 1]);
   printf(" x: %d ", personagem.x);
   printf("y: %d ", personagem.y);
-  printf("%d:%d", min, seg);
-  printf("\n");
+  printf("\n");*/
 }
 
 void movimento(char mv){ //função para o movimento do personagem
