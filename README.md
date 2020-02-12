@@ -2,4 +2,4 @@
 
 Jogo simples feito em c.
 
-![Demonstração](media/demo.mp4)
+![Demonstração](media/demo.gif)
